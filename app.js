@@ -1,72 +1,39 @@
 import express from 'express';
-//import path  from'path';
+import session from "express-session";
 import { dirname, join } from "path";
 import bodyParser from'body-parser';
-
-//import flash from "connect-flash";
-import mongoose from 'mongoose';
+//import mongoose from 'mongoose';
+import MongoStore from "connect-mongo";
 import User from "./public/user.js";
 import { fileURLToPath } from "url";
-
-//const { default: user } = require('./public/user');
-
+import { MONGODB_URI, PORT } from "./config.js";
 const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-//app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(join(__dirname, "public")));
 
-
-const mongo_uri = 'mongodb://127.0.0.1:27017/faesfarma';
-
-
-
-
-try {
-    const db =  mongoose.connect(mongo_uri);
-    console.log("Connected to ");
-  } catch (error) {
-    console.error(error);
-  }
-  
-  mongoose.connection.on("connected", () => {
-    console.log("Mongoose is connected");
-    
-  });
-  
-  mongoose.connection.on("disconnected", () => {
-    console.log("Mongoose is disconnected");
-  });
-  
-  
-/*
-mongoose.connect(mongo_uri, function(err) {
-    if (err) {
-        throw err;
-    }
-    else {
-        console.log(`succefuly conect`);
-    }
-});*/
-
-  
+app.set("port", PORT);
+app.use(
+  session({
+    secret: "secret",
+    resave: true,
+    saveUninitialized: true,
+    store: MongoStore.create({ mongoUrl: MONGODB_URI }),
+  })
+); 
 app.post('/register', async (req, res) => {
-
     const {name, email, celular} = req.body;
     const newUser = new User({name, email, celular});
-    newUser.pagina = "anticonceptivos";
+    newUser.pagina = "asma";
+    console.log(newUser);
     await newUser.save();
     res.redirect("/");
 });
 
-app.listen(4000, () => {
+/*app.listen(3000, () => {
     console.log('server started');
-
-})
-
-//module.export = app;
+})*/
 
 export default app;
